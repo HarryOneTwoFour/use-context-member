@@ -1,6 +1,6 @@
 {
   "name": "use-context-member",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "use context's member like using useState",
   "scripts": {
     "start": "cross-env NODE_ENV=development webpack serve --config config/webpack.config.js",

@@ -1,15 +1,15 @@
-## 说明
-###### `use-context-member`提供了`useMember` hook，可以更方便的使用React Context，并减少渲染次数。
-###### - 使用官方useContext：`const { user } = useContext(UserContext)`
-###### - 使用useMember：`const [user, setUser] = useMember(UserContext, 'user')`
-###### 两个例子都是通过hooks获得context中的user成员。useMember同时返回了一个setter，可以更方便的对context中的成员进行修改。useMember同时也减少了渲染次数，在这个例子中，只有user发生变化时，所在的组件才会重新渲染。而如果使用useContext的话，只要context发生了变化，不管user有没有变化，所在的组件都会重新渲染。
+## Introduction
+###### `use-context-member` provided `useMember` hook,to use React Context more easily and reduce component render times.
+###### - Official `useContext`: `const { user } = useContext(UserContext)`
+###### - Our `useMember`: `const [user, setUser] = useMember(UserContext, 'user')`
+###### The 2 examples are both to select user value from UserContext. Our `useMember` hook also returned a setter, you can directly use it to modify user. What's more `useMember` will reduce component's render times. Only if user is changed, the component will re-render. Well for `useContext`, the component will re-render when any member of UserContext changed.
 
-## 安装
+## Install
 npm i -D use-context-member
 
 ## API
 ### createContext
-`use-context-member`提供了`createContext`，其用法和`React.createContext`一致。你不能直接使用`React.createContext`
+`use-context-member` Provided `createContext`, same usage with `React.createContext`.You can not use `React.createContext` directly.
 ```
 import { createContext } from 'use-context-member';
 
@@ -24,7 +24,7 @@ const User = () => {
   )
 }
 ```
-context内部会更新user的值，如果需要在context外部监听user的变化，可以使用onChange属性
+inside context, we maintained it's state, if you need to listen the change of it, you can use `onChange` property.
 ```
 const handleChange = useCallback(data => {
   // do something
@@ -42,13 +42,13 @@ import { useMember } from 'use-context-member';
 
 const [name, setName] = useMember(UserContext, 'name')
 ```
-###### `name`, `setName`与`useState`的返回值类似。同`setState`一样，`setName`的参数支持用一个新的值更新，也支持通过一个函数更新
-###### 第一个参数是前面创建的Context
-###### 第二个参数是一个表达式，规则简单，用来从context中选择成员。如果不传第二个参数，表示选择整个context的值。
-###### - 用`.`来从object中选择，第一个`.`可以省略： `'name.firstname'`, 也可以用`[]`来选择：`'[name][firstname]'`，也可以混合使用：`'name[firstname]'`
-###### - 用`[]`从数组中选择：`'email[0]'`。支持负数：`'email[-1]'`, 其含义与`Array.slice`的参数一致。支持简单的筛选，比如context的value是 `[{id: '001'}, {id: '002'}]`, 可以用`'[id==001]'`选择出第一个元素（仅支持`==`）。
-###### 如果选择的成员是一个数组中的元素，你还可以使用返回值中的第三个值来删除这个元素。`const [email, setEmail, deleteEmail] = useMember(UserContext, 'email[0]')`, 执行`deleteEmail()`便可以从context中删除这个元素。
-###### useMember返回值中的setter和deleter都是稳定的，不会变化，可以放心的放入hooks的的dependencies中。
+###### [name, setName] are similar with `useState`. function type param are supported for `setName` too.
+###### The first param is the `UserContext` you created.
+###### The second param is an expression, used to select member from context. If you left it as `undefined`, then it means to select the whole context. expression rules are simple.
+###### - use `.` to select member from object, the first `.` can be omitted: `'name.firstname'`, You can also use `[]` to select: `'[name][firstname]'`, Sure you can mix the both: `'name[firstname]'`
+###### - use `[]` to select member from array: `'email[0]'`. negative number are supported too: `'email[-1]'`, same meaning as param for `Array.slice`. You can even make a simple finder: for example when context is `[{id: '001'}, {id: '002'}]`, use `'[id==001]'` to select the first element(only `==` is supported at here).
+###### When the selected member is an element of an array, a deleter are provided as the third part of return value: `const [email, setEmail, deleteEmail] = useMember(UserContext, 'email[0]')`, execute `deleteEmail()` will delete this email form the email array.
+###### the returned setter and deleter are both stable, so you can safely append them to some hooks' dependencies, e.g., useCallback, useEffect.
 
 ### useOperations
 ```
@@ -56,7 +56,7 @@ import { useOperations } from 'use-context-member';
 
 const [setEmail, deleteEmail] = useOperations(UserContext, 'email[0]`)
 ```
-###### 和useMember类似，只是不会返回选择的成员的值，只返回对该成员的操作。
+###### Same with `useMember`, except that this hook will not get the select member itself.
 
 ### useSelector
 ```
@@ -64,12 +64,12 @@ import { useSelector } from 'use-context-member';
 
 const email = useSelector(UserContext, s => s.email.find(email => email.endsWith('mail.com')))
 ```
-###### 与Redux中的useSelector类似，通过一个函数来筛选成员（或者任意值）。useMember可以解决大部分场景，但是遇到复杂的场景时，可能不能通过表达式的方式来筛选成员。这个时候就可以使用useSelector了，但缺点是没有setter，如果需要更新可以用useOperations获得setter，然后进行更新。推荐使用 [immer](https://immerjs.github.io/immer/docs/introduction) 来应对复杂的更新场景。
+###### Like Redux, use a function to select member. useMember can handle most scenario in your application. However expression is not enough for some complex cases, and then please use `useSelector` instead. On the other hand, `useSelector` don't provide a setter, you need to use `useOperations` to get one. I suggest you use [immer](https://immerjs.github.io/immer/docs/introduction) to deal with complex update logic.
 
-### 空指针与数组越界
-###### useMember，useOperations，useSelector内部已经catch住了这些异常，返回的成员值为`undefined`。这是因为Context.Provider与其它状态管理框架（比如Redux）不同，它其实就是一个组件，可以被多次使用，所以我们应该允许context初始化时使用空的value，然后在副作用中更新它。
+### No need to care NPE in hooks
+###### `useMember`, `useOperations` and `useSelector` have already catch the exceptions, and return `undefined` as the selected member's value when exception occurred. That's because Context.Provider is just a component, we should allow to leave it's value as null in initialization, and then update it in side effects.
 
-## 样例
+## One Example
 ```
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { createContext, useMember } from 'use-context-member'

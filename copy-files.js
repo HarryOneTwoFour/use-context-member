@@ -8,5 +8,5 @@ fs.writeFileSync('./dist/package.json', JSON.stringify(releasePackageJson, null,
 const dts = fs.readFileSync('index.d.ts', 'utf-8');
 fs.writeFileSync('./dist/cjs/index.d.ts', dts);
 
-const readme = fs.readFileSync('README.md', 'utf-8');
+const readme = fs.readFileSync('README.en.md', 'utf-8');
 fs.writeFileSync('./dist/README.md', readme);
